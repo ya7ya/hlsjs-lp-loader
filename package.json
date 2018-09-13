@@ -1,0 +1,20 @@
+{
+  "name": "hlsjs-lp-loader",
+  "version": "1.0.0",
+  "description": "HLS.js Livepeer Loader",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hls",
+    "hlsjs-loader",
+    "livepeer"
+  ],
+  "author": "M yahya <ya7yaz@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@livepeer/sdk": "^1.0.0-alpha.5",
+    "hls.js": "^0.11.0"
+  }
+}
