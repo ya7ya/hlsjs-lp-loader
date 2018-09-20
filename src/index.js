@@ -4,36 +4,44 @@ global.Buffer = global.Buffer || require('buffer').Buffer
 const { EventEmitter } = require('events')
 const debug = require('debug')('lp:hlsjs')
 const LivepeerSDK = require('@livepeer/sdk').default
-const Hls = require('hls.js')
+const XhrLoader = require('./xhr-loader').default
 
-const MAX_BLOCKS_AGO = 10000
+const MAX_BLOCKS_AGO = 50000
 
-class HlsjsLPLoader extends Hls.DefaultConfig.loader {
+export default class HlsjsLPLoader extends XhrLoader {
   constructor (config) {
     super(config)
     this.gateway = config.gateway || 'http://localhost:8935'
     this.emitter = config.emitter || new EventEmitter()
     this.lpConfig = config.lpConfig
-    this.boardcaster = config.lpBoardcaster
+    this.broadcaster = config.lpBroadcaster
 
     console.info('hlsjs-LP-loader ready ', config)
 
     var load = this.load.bind(this)
     this.load = (context, config, callbacks) => {
+      console.log('config: ', config)
       if (context.type === 'manifest' && !this.playlist) {
         this.getRPC((err, rpc) => {
           if (err) throw err
-          this.getBoardcasterJobs(this.broadcaster, (err, jobs) => {
+          console.log('broadcaster to find: ', this.broadcaster)
+          this.getBroadcasterJobs(this.broadcaster, (err, jobs) => {
             if (err) throw err
-
-            let url = this.parseManifestUrl(jobs[0])
-            if (!url) {
-              throw new Error(`couldn't parse URL for job ${jobs[0].streamId}`)
+            for (let i  = 0; i < jobs.length ; i++) {
+              if (jobs[i].broadcaster === this.broadcaster) {
+                let url = this.parseManifestUrl(jobs[0])
+                if (!url) {
+                  throw new Error(`couldn't parse URL for job ${jobs[0].streamId}`)
+                }
+                debug('broadcaster jobs: ', jobs[i])
+                this.playlist = url
+                context.url = url
+                load(context, config, callbacks)
+                break
+              } else {
+                debug('other broadcaster jobs: ', jobs[i])
+              }
             }
-            debug('broadcaster jobs: ', jobs[0])
-            this.playlist = url
-            context.url = url
-            load(context, config, callbacks)
           })
         })
       } else {
@@ -60,16 +68,16 @@ class HlsjsLPLoader extends Hls.DefaultConfig.loader {
     })
   }
 
-  getBoardcasterJobs (boardcaster, callback) {
+  getBroadcasterJobs (broadcaster, callback) {
     if (!this.rpc) {
       // this.getRPC((err, rpc) => {
-      //   this.getJob(boardcaster, callback)
+      //   this.getJob(broadcaster, callback)
       // })
       return callback(new Error(`Livepeer RPC is not available`))
     }
 
     this.rpc.getJobs({
-      boardcaster,
+      broadcaster,
       to: 'latest',
       blocksAgo: MAX_BLOCKS_AGO
     }).then((jobs) => {
@@ -89,5 +97,3 @@ class HlsjsLPLoader extends Hls.DefaultConfig.loader {
     }
   }
 }
-
-exports = module.exports = HlsjsLPLoader

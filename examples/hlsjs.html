@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="../dist/bundle.js"></script>
+
+  <style>
+      #video {
+          width: 720px;
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+      }
+  </style>
+
+</head>
+<body>
+
+    <video id="video" controls muted></video>
+
+    <script>
+
+        if (Hls.isSupported()) {
+
+            var hls = new Hls({
+                pLoader: HlsjsLPLoader,
+                lpBroadcaster: '0x0ddb225031ccb58ff42866f82d907f7766899014',
+                lpConfig: {
+                  controllerAddress: '0x37dC71366Ec655093b9930bc816E16e6b587F968',
+                  provider: 'https://rinkeby.infura.io/srFaWg0SlljdJAoClX3B'
+                },
+                gateway: 'https://d1k66rqp5xwvxb.cloudfront.net'
+            })
+
+            hls.loadSource('#')
+            var video = document.getElementById("video");
+            hls.attachMedia(video);
+            console.log('hlsLoader: ', HlsjsLPLoader)
+            hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+              console.log("video and hls.js are now bound together !");
+              hls.loadSource("http://my.streamURL.com/playlist.m3u8");
+              hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                console.log("manifest loaded, found " + data.levels.length + " quality level");
+              });
+            });
+        } else {
+            document.write("Not supported :(");
+        }
+
+    </script>
+
+</body>
+</html>
