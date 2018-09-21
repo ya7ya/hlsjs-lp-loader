@@ -26,3 +26,16 @@ broadcaster address.
   // TODO , add an example.
   
 ```
+
+
+## Example
+-----------
+
+```bash
+$ npm install
+
+$ npm run demo
+
+# go to localhost:8080/examples/hlsjs.html
+
+```
